@@ -38,7 +38,6 @@ def on_min_area_percent_change(val):
     global min_area_percent_trackbar
     min_area_percent_trackbar = val
 
-# Helper function to order points of a quadrilateral
 def order_points(pts):
     rect = np.zeros((4, 2), dtype="float32")
     s = pts.sum(axis=1)
@@ -49,7 +48,6 @@ def order_points(pts):
     rect[3] = pts[np.argmax(diff_yx)] # Bottom-left
     return rect
 
-# Function to detect screen corners using global tunable parameters
 def detect_screen_corners(image):
     global canny_thr_1, canny_thr_2, blur_kernel_trackbar, \
            approx_poly_epsilon_trackbar, aspect_ratio_tolerance_trackbar, \
@@ -75,7 +73,7 @@ def detect_screen_corners(image):
     contours, _ = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if not contours:
-        return None # Return only None, edged image not needed here for data_sender's core logic
+        return None 
 
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
     found_corners = None
@@ -116,12 +114,10 @@ def main():
         return
     print(f"Connected to device: {getattr(device, 'full_name', 'Pupil Labs Neon Device')}")
 
-    # Setup UDP socket
     UDP_IP = "127.0.0.1"
     UDP_PORT = 5005
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    # Setup OpenCV UI
     cv2.namedWindow("Live Video Feed + Gaze Sender")
     cv2.createTrackbar("Canny Thr1", "Live Video Feed + Gaze Sender", canny_thr_1, 255, on_canny_thr1_change)
     cv2.createTrackbar("Canny Thr2", "Live Video Feed + Gaze Sender", canny_thr_2, 255, on_canny_thr2_change)
@@ -134,7 +130,7 @@ def main():
     print("Adjust trackbars to tune detection parameters.")
     print("Gaze data will be sent only when the screen is detected and homography is computed.")
 
-    H_matrix = None # Store the current homography matrix
+    H_matrix = None 
 
     try:
         while True:
@@ -168,13 +164,12 @@ def main():
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                 else:
                     cv2.putText(display_img, "Screen Detected. Homography Failed.", (10, 30), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2) # Orange
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2) # orange
             else:
-                H_matrix = None # Invalidate H if screen not detected
+                H_matrix = None 
                 cv2.putText(display_img, "No screen detected. Adjust parameters.", (10, 30), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-            # Process and send gaze data if H is valid
             if current_H_valid and H_matrix is not None:
                 gaze = device.receive_gaze_datum()
                 if gaze is not None and gaze.worn:
@@ -186,12 +181,10 @@ def main():
                         ts = gaze.timestamp_unix_ns
                         packet = struct.pack('<dffff', ts, gx, gy, float(px), float(py))
                         sock.sendto(packet, (UDP_IP, UDP_PORT))
-                        print(f"Sent: px={px:.2f}, py={py:.2f}") # Optional: for debugging
+                        print(f"Sent: px={px:.2f}, py={py:.2f}") # debugging
                     else:
-                        # Optional: print("Denominator zero in homography transformation")
-                        pass # Skip sending if denominator is zero
-                # else:
-                    # Optional: print("Gaze not worn or no gaze data")
+                        pass
+                
 
             cv2.imshow("Live Video Feed + Gaze Sender", display_img)
             key = cv2.waitKey(30) & 0xFF # Increased wait time for smoother UI
