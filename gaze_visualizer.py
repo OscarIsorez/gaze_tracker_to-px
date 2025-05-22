@@ -74,6 +74,7 @@ circle_colorref = RGB(*CIRCLE_COLOR_RGB)
 
 # Window Procedure
 def wnd_proc_py(hWnd_param, msg, wParam, lParam):
+    
     global running
     if msg == WM_DESTROY:
         user32.PostQuitMessage(0)
@@ -90,6 +91,10 @@ def create_overlay_window():
     h_instance_global = kernel32.GetModuleHandleW(None)
     if not h_instance_global:
         print(f"Failed to get module handle: {kernel32.GetLastError()}")
+
+
+
+
         return False
 
     wc = WNDCLASSEXW() # Use the custom defined structure
